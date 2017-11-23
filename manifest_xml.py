@@ -1,3 +1,4 @@
+#coding:utf-8
 #
 # Copyright (C) 2008 The Android Open Source Project
 #
@@ -37,6 +38,7 @@ from error import ManifestParseError, ManifestInvalidRevisionError
 MANIFEST_FILE_NAME = 'manifest.xml'
 LOCAL_MANIFEST_NAME = 'local_manifest.xml'
 LOCAL_MANIFESTS_DIR_NAME = 'local_manifests'
+USE_GOOGLE_HANDLE_METHOD = ''
 
 urllib.parse.uses_relative.extend(['ssh', 'git'])
 urllib.parse.uses_netloc.extend(['ssh', 'git'])
@@ -80,6 +82,14 @@ class _XmlRemote(object):
   def _resolveFetchUrl(self):
     url = self.fetchUrl.rstrip('/')
     manifestUrl = self.manifestUrl.rstrip('/')
+
+    #add by frank;
+    if USE_GOOGLE_HANDLE_METHOD == '' and url != '..':
+        #print('fdebug, use oem-method handle the remote fecth url.')
+        url = self._Create_NewUrl(manifestUrl, url)
+        return url
+
+    # if fetchUrl == '..', continue to use the google code logic;
     # urljoin will gets confused over quite a few things.  The ones we care
     # about here are:
     # * no scheme in the base url, like <hostname:port>
@@ -91,9 +101,20 @@ class _XmlRemote(object):
     if manifestUrl.find(':') != manifestUrl.find('/') - 1:
       manifestUrl = 'gopher://' + manifestUrl
     manifestUrl = re.sub(r'^persistent-https://', 'wais://', manifestUrl)
+    #Create New Url with manifestUrl and fetch;
     url = urllib.parse.urljoin(manifestUrl, url)
     url = re.sub(r'^gopher://', '', url)
     url = re.sub(r'^wais://', 'persistent-https://', url)
+    #print('fdebug, last-url=%s\n' % url)
+
+    return url
+
+  #This function add by frank at 2017-11-22;
+  def _Create_NewUrl(self, manifestUrl, fetchUrl):
+    prefix_url = manifestUrl[0:manifestUrl.find(':')+1]
+    url = prefix_url + fetchUrl
+    #print('fdebug, all-url=%s' % url)
+
     return url
 
   def ToRemoteSpec(self, projectName):
@@ -681,6 +702,7 @@ class XmlManifest(object):
 
     remote = self._get_remote(node)
     if remote is None:
+      #if you do not set the remote, will use the def remote;
       remote = self._default.remote
     if remote is None:
       raise ManifestParseError("no remote for project %s within %s" %
