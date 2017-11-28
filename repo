@@ -3,7 +3,12 @@
 
 ## repo default configuration
 ##
-REPO_URL = 'https://gerrit.googlesource.com/git-repo'
+#qcom repo
+REPO_URL = 'git://codeaurora.org/tools/repo.git'
+#frank repo
+#REPO_URL = 'ssh://git@10.18.8.121/root/my_repo_tools.git'
+#google repo
+#REPO_URL = 'https://gerrit.googlesource.com/git-repo'
 REPO_REV = 'stable'
 
 # Copyright (C) 2008 Google Inc.
