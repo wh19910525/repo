@@ -255,6 +255,34 @@ class _LinkFile:
       except IOError:
         _error('Cannot link file %s to %s', src, dest)
 
+  def _RelativeLink(self):
+    #print('--- src=[%s]' % self.src)
+    #print('--- dest=[%s]' % self.dest)
+    #print('--- abs_src=[%s]' % self.abs_src)
+    #print('--- abs_dest=[%s]' % self.abs_dest)
+
+    current_path = os.getcwd()
+    #print('--- current path=[%s]' % current_path)
+
+    relative_src = self.abs_src[len(current_path)+1:]
+    #print ('--- relative_src=%s' % relative_src)
+
+    src = relative_src
+    dest = self.abs_dest
+    # link file if it does not exist or is out of date
+    if not os.path.islink(dest) or os.readlink(dest) != src:
+      try:
+        # remove existing file first, since it might be read-only
+        if os.path.exists(dest):
+          os.remove(dest)
+        else:
+          dest_dir = os.path.dirname(dest)
+          if not os.path.isdir(dest_dir):
+            os.makedirs(dest_dir)
+        os.symlink(src, dest)
+      except IOError:
+        _error('Cannot link file %s to %s', src, dest)
+
 class RemoteSpec(object):
   def __init__(self,
                name,
@@ -1127,7 +1155,8 @@ class Project(object):
     for copyfile in self.copyfiles:
       copyfile._Copy()
     for linkfile in self.linkfiles:
-      linkfile._Link()
+      #linkfile._Link()
+      linkfile._RelativeLink()
 
   def GetCommitRevisionId(self):
     """Get revisionId of a commit.
