@@ -633,7 +633,7 @@ later is required to fix a server side protocol bug.
       to_fetch.sort(key=self._fetch_times.Get, reverse=True)
 
       fetched = self._Fetch(to_fetch, opt)
-      _PostRepoFetch(rp, opt.no_repo_verify)
+      #_PostRepoFetch(rp, opt.no_repo_verify)
       if opt.network_only:
         # bail out now; the rest touches the working tree
         return
