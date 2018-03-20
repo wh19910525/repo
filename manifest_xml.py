@@ -111,6 +111,7 @@ class _XmlRemote(object):
 
   #This function add by frank at 2017-11-22;
   def _Create_NewUrl(self, manifestUrl, fetchUrl):
+    #print('fdebug, manifestUrl=%s, fetchUrl=%s' % (manifestUrl, fetchUrl))
     prefix_url = manifestUrl[0:manifestUrl.find(':')+1]
     url = prefix_url + fetchUrl
     #print('fdebug, all-url=%s' % url)
@@ -760,7 +761,7 @@ class XmlManifest(object):
     groups = [x for x in re.split(r'[,\s]+', groups) if x]
 
     if parent is None:
-      relpath, worktree, gitdir, objdir = self.GetProjectPaths(name, path)
+      relpath, worktree, gitdir, objdir = self.GetProjectPaths(name, path, remote.fetchUrl)
     else:
       relpath, worktree, gitdir, objdir = \
           self.GetSubprojectPaths(parent, name, path)
@@ -802,11 +803,27 @@ class XmlManifest(object):
 
     return project
 
-  def GetProjectPaths(self, name, path):
+  def GetProjectPaths(self, name, path, fetchUrl):
     relpath = path
     if self.IsMirror:
       worktree = None
       gitdir = os.path.join(self.topdir, '%s.git' % name)
+
+      #add by frank at 2018-03-20, start;
+      if fetchUrl != '..':
+          group_dir_name = '/' + fetchUrl
+      else:
+          group_dir_name = ''
+
+      project_prefix = gitdir[0:gitdir.rfind('/')]
+      project_suffix = gitdir[gitdir.rfind('/'):]
+      #print ("prefix=%s, suffix=%s" % (project_prefix, project_suffix))
+
+      gitdir = project_prefix + group_dir_name + project_suffix
+      print ("gitdir_path=%s" % gitdir)
+
+      #add by frank at 2018-03-20, end;
+
       objdir = gitdir
     else:
       worktree = os.path.join(self.topdir, path).replace('\\', '/')
