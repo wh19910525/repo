@@ -417,7 +417,7 @@ class XmlManifest(object):
         raise e
 
       if self.IsMirror:
-        self._AddMetaProjectMirror(self.repoProject)
+        #self._AddMetaProjectMirror(self.repoProject)
         self._AddMetaProjectMirror(self.manifestProject)
 
       self._loaded = True
@@ -820,7 +820,7 @@ class XmlManifest(object):
       #print ("prefix=%s, suffix=%s" % (project_prefix, project_suffix))
 
       gitdir = project_prefix + group_dir_name + project_suffix
-      print ("gitdir_path=%s" % gitdir)
+      #print ("gitdir_path=%s" % gitdir)
 
       #add by frank at 2018-03-20, end;
 
