@@ -91,7 +91,7 @@ class _XmlRemote(object):
     if url == '..':
         url = manifestUrl[0:manifestUrl.rfind('/')]
 
-    print('fdebug, last-url=%s\n' % url)
+    #print('fdebug, last-url=%s\n' % url)
 
     # Direct return fetchUrl
     return url

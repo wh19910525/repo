@@ -1,0 +1,11 @@
+
+修改方法:
+    只读:
+        url = https://github.com/wh19910525/repo.git
+    可写:
+        url = git@github.com:wh19910525/repo.git
+
+使用方法:
+
+repo init --repo-url=https://github.com/wh19910525/repo.git --repo-branch=oem-develop --no-repo-verify -u git@10.18.8.121:MTK_LF502/manifest.git -m admin_develop.xml -b fdebug_repo_sf_link 
+
