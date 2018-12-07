@@ -79,30 +79,69 @@ class _XmlRemote(object):
     return self.__dict__ != other.__dict__
 
   def _resolveFetchUrl(self):
+    #print('fdebug, manifestUrl=%s, fetchUrl=%s' % (self.manifestUrl, self.fetchUrl))
+
     url = self.fetchUrl.rstrip('/')
     manifestUrl = self.manifestUrl.rstrip('/')
 
-    #add by frank;
-    # fetchUrl == 'xxx'
-    if url != '..' and url.find(':') == -1:
-        url = self._Create_NewUrl(manifestUrl, url)
+    #modify by frank at 2018-12-07, {
 
-    # fetchUrl == '..'
-    if url == '..':
-        url = manifestUrl[0:manifestUrl.rfind('/')]
+    #
+    # 如果 fetchUrl 以 "https:", "git@", "git:", "ssh:" 开头,
+    #   直接使用 fetchUrl 作为 project的 url;
+    #
+    # new project Url -- ${fetch}/${project.name}.git
+    #
+    if (len(url) >= 6 and url[0:6] == "https:") or \
+            (len(url) >= 4 and url[0:4] == "git@") or \
+            (len(url) >= 4 and url[0:4] == "git:") or \
+            (len(url) >= 4 and url[0:4] == "ssh:"):
+        url = url
+    else:
+        url = self._Create_NewUrl(manifestUrl, url)
 
     #print('fdebug, last-url=%s\n' % url)
 
-    # Direct return fetchUrl
     return url
+    #modify by frank at 2018-12-07, }
 
-  #This function add by frank at 2017-11-22;
+  #add by frank at 2018-12-08, {
+  #
+  # 如果 fetchUrl 为 '..' 或者 一个路径, 说明project和manifest仓库 在同一个服务器上,
+  #   那么使用manifest的url 作为 project的 url;
+  #
+  # new project Url -- ${manifestUrl}${fetch}/${project.name}.git
+  #
   def _Create_NewUrl(self, manifestUrl, fetchUrl):
-    #print('fdebug, manifestUrl=%s, fetchUrl=%s' % (manifestUrl, fetchUrl))
-    prefix_url = manifestUrl[0:manifestUrl.find(':')+1]
-    url = prefix_url + fetchUrl
+    #print('fdebug, src manifestUrl=%s, fetchUrl=%s' % (manifestUrl, fetchUrl))
 
-    return url
+    back_dir_cnt = fetchUrl.count('..')
+    #print ("back cnt=[%r]" % back_dir_cnt)
+
+    for i in range(back_dir_cnt):
+	#print ("cnt:%r" % i)
+
+	#删除 最后一级目录;
+	manifestUrl = manifestUrl[0:manifestUrl.rfind('/')]
+
+	#删除 第一级目录;
+	if fetchUrl == '..':
+	    fetchUrl = ''
+	else:
+	    fetchUrl = fetchUrl[fetchUrl.find('/')+1:]
+
+	#print ("manifest-Url:[%s]" % manifestUrl)
+	#print ("fetch-Url:[%s]\n" % fetchUrl)
+
+    if fetchUrl == '':
+	newProjectUrl = manifestUrl
+    else:
+	newProjectUrl = manifestUrl + "/" + fetchUrl
+
+    #print ("newProject-Url:[%r]\n" % newProjectUrl)
+
+    return newProjectUrl
+  #add by frank at 2018-12-08, }
 
   def ToRemoteSpec(self, projectName):
     url = self.resolvedFetchUrl.rstrip('/') + '/' + projectName
@@ -795,7 +834,7 @@ class XmlManifest(object):
       worktree = None
       gitdir = os.path.join(self.topdir, '%s.git' % name)
 
-      #add by frank at 2018-03-20, start;
+      #modify by frank at 2018-03-20, {
       if fetchUrl != '..':
           group_dir_name = '/' + fetchUrl
       else:
@@ -808,7 +847,7 @@ class XmlManifest(object):
       gitdir = project_prefix + group_dir_name + project_suffix
       #print ("gitdir_path=%s" % gitdir)
 
-      #add by frank at 2018-03-20, end;
+      #modify by frank at 2018-03-20, }
 
       objdir = gitdir
     else:
