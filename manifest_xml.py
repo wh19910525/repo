@@ -79,24 +79,47 @@ class _XmlRemote(object):
     return self.__dict__ != other.__dict__
 
   def _resolveFetchUrl(self):
+    print('fdebug, manifestUrl=%s, fetchUrl=%s' % (self.manifestUrl, self.fetchUrl))
+
     url = self.fetchUrl.rstrip('/')
     manifestUrl = self.manifestUrl.rstrip('/')
 
-    #add by frank;
-    # fetchUrl == 'xxx'
-    if url != '..' and url.find(':') == -1:
-        url = self._Create_NewUrl(manifestUrl, url)
+    #add by frank at 2018-12-07, {
 
-    # fetchUrl == '..'
-    if url == '..':
+    # 01, fetchUrl 以 '..' 开头;
+    if len(url) >= 2 and url[0:3] == "..":
+        print('fdebug, fetchUrl=%s' % (url))
+        # manifestUrl     -- git@10.18.8.121:MTK_LF502_8_1/manifest.git
+        # new project Url -- git@10.18.8.121:MTK_LF502_8_1/${project.name}.git
         url = manifestUrl[0:manifestUrl.rfind('/')]
 
-    #print('fdebug, last-url=%s\n' % url)
+    # 02, 直接使用 fetchUrl
+    #elif len(url) >= 4 and url[0:4] == "git@":
+    elif len(url) >= 5 and url[0:5] == "https":
+        url = url
+        # new project Url -- ${fetch}/${project.name}.git
+
+    # 03, 在gitlab上, 可以通过一个manifest.xml 下载 多个group里的 project
+    else:
+        url = self._Create_NewUrl(manifestUrl, url)
+
+    print('fdebug, last-url=%s\n' % url)
 
     # Direct return fetchUrl
     return url
+    #add by frank at 2018-12-07, }
 
-  #This function add by frank at 2017-11-22;
+  #
+  # This function add by frank at 2017-11-22
+  #
+  # 在gitlab上，发现一个group里的项目默只能能被当前group里的manifest仓库下载,
+  #     不能被其他group通过manifest下载, 我们这里添加一个新的函数,
+  #
+  #     多个 group 一定要在 同一个 服务器上;
+  #
+  # manifestUrl     -- git@10.18.8.121:MTK_LF502_8_1/manifest.git
+  # new project Url -- git@10.18.8.121:${fetch}/${project.name}.git
+  #
   def _Create_NewUrl(self, manifestUrl, fetchUrl):
     #print('fdebug, manifestUrl=%s, fetchUrl=%s' % (manifestUrl, fetchUrl))
     prefix_url = manifestUrl[0:manifestUrl.find(':')+1]
@@ -795,7 +818,7 @@ class XmlManifest(object):
       worktree = None
       gitdir = os.path.join(self.topdir, '%s.git' % name)
 
-      #add by frank at 2018-03-20, start;
+      #add by frank at 2018-03-20, {
       if fetchUrl != '..':
           group_dir_name = '/' + fetchUrl
       else:
@@ -808,7 +831,7 @@ class XmlManifest(object):
       gitdir = project_prefix + group_dir_name + project_suffix
       #print ("gitdir_path=%s" % gitdir)
 
-      #add by frank at 2018-03-20, end;
+      #add by frank at 2018-03-20, }
 
       objdir = gitdir
     else:
